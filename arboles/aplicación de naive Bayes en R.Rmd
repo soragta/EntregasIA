@@ -1,0 +1,50 @@
+---
+title: "aplicación de naive Bayes en R"
+author: "Roberto Moises Marin Perez"
+date: "2026-06-30"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+# Instalar si no se tienen previamente:
+#install.packages("e1071")
+#install.packages("caret")
+
+library(e1071)
+library(caret)
+
+# Fijar una semilla aleatoria para garantizar la reproducibilidad del experimento
+set.seed(123)
+
+# Crear un vector de índices aleatorios
+indices <- sample(1:nrow(iris), size = 0.8 * nrow(iris))
+
+# Dividir el dataset iris
+datos_entrenamiento <- iris[indices, ]
+datos_prueba        <- iris[-indices, ]
+
+# Mostrar las dimensiones de los conjuntos creados
+cat("Dimensiones de Entrenamiento:", dim(datos_entrenamiento), "\n")
+cat("Dimensiones de Prueba:", dim(datos_prueba), "\n")
+
+# Entrenar el clasificador
+modelo_nb <- naiveBayes(Species ~ ., data = datos_entrenamiento)
+
+# Imprimir el resumen del modelo entrenado
+print(modelo_nb)
+
+# Realizar predicciones de clase
+predicciones <- predict(modelo_nb, newdata = datos_prueba)
+
+# Mostrar un vistazo de las primeras clasificaciones resultantes
+head(predicciones)
+
+# Generar la matriz de confusión y estadísticas básicas
+resultado_evaluacion <- confusionMatrix(predicciones, datos_prueba$Species)
+
+# Desplegar los resultados en pantalla
+print(resultado_evaluacion)

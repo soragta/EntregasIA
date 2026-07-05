@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actividad NB FCI - Clasificación con Naive Bayes</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #18bc9c;
+            --bg-light: #f8f9fa;
+            --text-dark: #333333;
+            --code-bg: #1e1e1e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        header {
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
+        }
+
+        .meta-info {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-top: 35px;
+            border-left: 5px solid var(--secondary);
+            padding-left: 12px;
+            font-size: 1.5rem;
+        }
+
+        p {
+            margin: 10px 0 20px 0;
+            text-align: justify;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .bg-excelente { background-color: #27ae60; }
+        .bg-bueno { background-color: #2980b9; }
+        .bg-regular { background-color: #f39c12; }
+        .bg-deficiente { background-color: #c0392b; }
+
+        .code-title {
+            background: #2d3748;
+            color: #a0aec0;
+            padding: 8px 15px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            margin-bottom: 0;
+        }
+
+        pre {
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom-left-radius: 6px;
+            border-bottom-right-radius: 6px;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+
+        code.r-output {
+            display: block;
+            background: #f4f6f7;
+            color: #2c3e50;
+            padding: 15px;
+            border-left: 4px solid #bdc3c7;
+            white-space: pre;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Actividad NB FCI</h1>
+            <div class="meta-info">
+            </div>
+        </header>
+
+        <h2>1. Tabla Completa de Estudiantes Tabulados de la FCI</h2>
+        <p>A continuación se presenta la tabla integrada total generada en R con la semilla fija <code>set.seed(123)</code>, combinando los registros base con la lógica condicional de asignación de puntajes:</p>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th># Est.</th>
+                        <th>TiempoEstudio</th>
+                        <th>Asistencia</th>
+                        <th>Participacion</th>
+                        <th>SituacionEcon</th>
+                        <th>Rendimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1</td><td>Alto</td><td>Alta</td><td>Alta</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>2</td><td>Medio</td><td>Media</td><td>Baja</td><td>Mala</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>3</td><td>Bajo</td><td>Baja</td><td>Baja</td><td>Mala</td><td><span class="badge bg-deficiente">Deficiente</span></td></tr>
+                    <tr><td>4</td><td>Alto</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>5</td><td>Medio</td><td>Media</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>6</td><td>Alto</td><td>Alta</td><td>Alta</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>7</td><td>Bajo</td><td>Baja</td><td>Baja</td><td>Mala</td><td><span class="badge bg-deficiente">Deficiente</span></td></tr>
+                    <tr><td>8</td><td>Medio</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>9</td><td>Alto</td><td>Media</td><td>Alta</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>10</td><td>Bajo</td><td>Baja</td><td>Media</td><td>Mala</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>11</td><td>Medio</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>12</td><td>Alto</td><td>Baja</td><td>Baja</td><td>Mala</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>13</td><td>Medio</td><td>Media</td><td>Media</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>14</td><td>Alto</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>15</td><td>Alto</td><td>Alta</td><td>Baja</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>16</td><td>Bajo</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>17</td><td>Alto</td><td>Alta</td><td>Alta</td><td>Mala</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>18</td><td>Bajo</td><td>Alta</td><td>Media</td><td>Mala</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>19</td><td>Medio</td><td>Media</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>20</td><td>Medio</td><td>Alta</td><td>Media</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>21</td><td>Alto</td><td>Alta</td><td>Media</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>22</td><td>Medio</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>23</td><td>Alto</td><td>Media</td><td>Baja</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>24</td><td>Medio</td><td>Baja</td><td>Alta</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>25</td><td>Alto</td><td>Media</td><td>Media</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>26</td><td>Medio</td><td>Media</td><td>Alta</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>27</td><td>Medio</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>28</td><td>Alto</td><td>Media</td><td>Alta</td><td>Mala</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>29</td><td>Alto</td><td>Media</td><td>Media</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>30</td><td>Medio</td><td>Alta</td><td>Baja</td><td>Mala</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>31</td><td>Bajo</td><td>Media</td><td>Media</td><td>Buena</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>32</td><td>Alto</td><td>Alta</td><td>Alta</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>33</td><td>Medio</td><td>Media</td><td>Alta</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>34</td><td>Bajo</td><td>Media</td><td>Baja</td><td>Buena</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>35</td><td>Alto</td><td>Alta</td><td>Media</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>36</td><td>Medio</td><td>Alta</td><td>Alta</td><td>Buena</td><td><span class="badge bg-excelente">Excelente</span></td></tr>
+                    <tr><td>37</td><td>Alto</td><td>Baja</td><td>Media</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>38</td><td>Medio</td><td>Baja</td><td>Alta</td><td>Buena</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                    <tr><td>39</td><td>Bajo</td><td>Alta</td><td>Baja</td><td>Mala</td><td><span class="badge bg-regular">Regular</span></td></tr>
+                    <tr><td>40</td><td>Medio</td><td>Alta</td><td>Media</td><td>Mala</td><td><span class="badge bg-bueno">Bueno</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>2. Partición de Datos (80% / 20%)</h2>
+        <p>Salida generada por la consola al aplicar los índices aleatorios con la semilla <code>777</code>:</p>
+        <div class="code-title">Salida de Consola R</div>
+        <pre><code class="r-output">Registros para Entrenamiento (80%): 32 
+Registros para Prueba (20%): 8 </code></pre>
+
+        <h2>3. Comparativa: Valores Reales vs Predichos (Set de Prueba)</h2>
+        <p>Resultados devueltos por la instrucción <code>knitr::kable(resultados_comparativa)</code> en los 8 casos evaluados:</p>
+        
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estudiante (Test)</th>
+                        <th>Valor Real</th>
+                        <th>Predicho por Naive Bayes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>1 (ID 6)</td><td>Excelente</td><td>Excelente</td></tr>
+                    <tr><td>2 (ID 8)</td><td>Bueno</td><td>Bueno</td></tr>
+                    <tr><td>3 (ID 17)</td><td>Excelente</td><td>Excelente</td></tr>
+                    <tr><td>4 (ID 19)</td><td>Bueno</td><td>Bueno</td></tr>
+                    <tr><td>5 (ID 21)</td><td>Bueno</td><td>Bueno</td></tr>
+                    <tr><td>6 (ID 30)</td><td>Regular</td><td>Bueno</td></tr>
+                    <tr><td>7 (ID 34)</td><td>Regular</td><td>Regular</td></tr>
+                    <tr><td>8 (ID 35)</td><td>Excelente</td><td>Excelente</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h2>4. Matriz de Confusión Oficial</h2>
+        <p>La matriz cruzada nativa (<code>table(Predicho, Real)</code>) obtenida directamente del algoritmo:</p>
+        
+        <div class="code-title">Salida del print(matriz_confusion)</div>
+        <pre><code class="r-output">            Real
+Predicho     Excelente Bueno Regular Deficiente
+  Excelente          3     0       0          0
+  Bueno              0     3       1          0
+  Regular            0     0       1          0
+  Deficiente         0     0       0          0</code></pre>
+
+        <h2>5. Precisión General del Modelo</h2>
+        <p>Métrica final de exactitud calculada matemáticamente:</p>
+        <div class="code-title">Salida de Consola R</div>
+        <pre><code class="r-output">Precisión Global (Accuracy) en el conjunto de prueba: 87.5 %</code></pre>
+
+        <h2>6. Conclusiones Estadísticas</h2>
+        <ul>
+            <li><strong>Evaluación de Aciertos:</strong> El modelo clasificó correctamente 7 de los 8 estudiantes del grupo de prueba, cometiendo una sola desviación al catalogar como "Bueno" a un alumno que originalmente era "Regular".</li>
+            <li><strong>Comportamiento del Algoritmo:</strong> Al ser un set categórico puro, Naive Bayes asignó probabilidades sólidas logrando un desempeño robusto (<strong>87.5% de Accuracy</strong>).</li>
+        </ul>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Aplicación de Naive Bayes en R con el Dataset Iris</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #2c3e50;
+        line-height: 1.6;
+        margin: 0;
+        padding: 40px;
+        background-color: #f8f9fa;
+    }
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .header-banner {
+        background-color: #2c3e50;
+        color: #ffffff;
+        padding: 25px 20px;
+        margin-bottom: 25px;
+        border-radius: 6px;
+    }
+    .header-banner h1 {
+        margin: 0;
+        font-size: 24pt;
+        font-weight: 600;
+    }
+    .header-banner p {
+        margin: 8px 0 0 0;
+        font-size: 12pt;
+        color: #bdc3c7;
+    }
+    h2 {
+        font-size: 16pt;
+        color: #1a5276;
+        border-left: 4px solid #2980b9;
+        padding-left: 10px;
+        margin-top: 30px;
+        margin-bottom: 15px;
+    }
+    p, li {
+        font-size: 11pt;
+        text-align: justify;
+    }
+    ul {
+        margin-top: 5px;
+        margin-bottom: 15px;
+        padding-left: 20px;
+    }
+    li {
+        margin-bottom: 8px;
+    }
+    pre {
+        background-color: #f4f6f7;
+        border: 1px solid #d5dbdb;
+        border-radius: 6px;
+        padding: 15px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 10pt;
+        overflow-x: auto;
+        margin: 20px 0;
+    }
+    .note-box {
+        background-color: #eaf2f8;
+        border-left: 4px solid #5499c7;
+        padding: 15px;
+        margin: 20px 0;
+        border-radius: 0 6px 6px 0;
+    }
+    .note-box p {
+        margin: 0;
+        font-size: 10.5pt;
+        color: #2471a3;
+    }
+    .keyword {
+        color: #c0392b;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-banner">
+        <h1>Clasificación con Naive Bayes en R</h1>
+        <p>Guía Práctica de Implementación usando el Dataset <em>Iris</em></p>
+    </div>
+
+    <p>El clasificador de <strong>Naive Bayes</strong> es un algoritmo basado en el teorema de Bayes que asume independencia condicional entre las variables predictoras dado el valor de la variable objetivo. Es especialmente útil por su eficiencia y velocidad en problemas de clasificación.</p>
+
+    <h2>1. Instalación y Carga de Librerías</h2>
+    <p>Para este análisis requerimos el paquete <span class="keyword">e1071</span> (que contiene el algoritmo Naive Bayes) y el paquete <span class="keyword">caret</span> (para generar la matriz de confusión y evaluar el modelo).</p>
+    <pre># Instalar si no los tienes instalados previamente
+install.packages("e1071")
+install.packages("caret")
+
+# Cargar las librerías en tu script de R
+library(e1071)
+library(caret)</pre>
+
+    <h2>2. Preparación y División de Datos</h2>
+    <p>Es fundamental dividir el conjunto de datos <code>iris</code> en un <strong>80% para entrenamiento</strong> (guardado en la variable <code>datos_entrenamiento</code>) y un <strong>20% para prueba</strong> (guardado en <code>datos_prueba</code>).</p>
+    <pre># Fijar una semilla para reproducibilidad
+set.seed(123)
+
+# Generar índices aleatorios para la división
+indices &lt;- sample(1:nrow(iris), size = 0.8 * nrow(iris))
+
+# Crear los subconjuntos correspondientes
+datos_entrenamiento &lt;- iris[indices, ]
+datos_prueba        &lt;- iris[-indices, ]</pre>
+
+    <h2>3. Entrenamiento del Modelo</h2>
+    <p>Entrenamos el clasificador utilizando la función <code>naiveBayes()</code>. La estructura de la fórmula <code>Species ~ .</code> le indica a R que use todas las variables del dataset (Longitud/Ancho de Sépalo y Pétalo) para predecir la especie de la planta.</p>
+    <pre># Entrenar el clasificador Naive Bayes
+modelo_nb &lt;- naiveBayes(Species ~ ., data = datos_entrenamiento)
+
+# Visualizar el resumen de probabilidades condicionales calculadas
+print(modelo_nb)</pre>
+
+    <div class="note-box">
+        <p><strong>Nota Matemática:</strong> Como las variables de <code>iris</code> son numéricas continuas, el algoritmo calcula la media y la desviación estándar para cada clase asumiendo por defecto una distribución Gaussiana (Normal).</p>
+    </div>
+
+    <h2>4. Realizar Predicciones</h2>
+    <p>Una vez entrenado el algoritmo, procedemos a clasificar las flores del conjunto de prueba, el cual se mantuvo oculto para el modelo durante la etapa anterior.</p>
+    <pre># Predecir las clases del conjunto de datos de prueba
+predicciones &lt;- predict(modelo_nb, newdata = datos_prueba)
+
+# Mostrar las primeras predicciones resultantes
+head(predicciones)</pre>
+
+    <h2>5. Evaluación Mediante Matriz de Confusión</h2>
+    <p>Finalmente, comparamos el rendimiento de las predicciones del algoritmo frente a las etiquetas reales del dataset botánico mediante una matriz de confusión.</p>
+    <pre># Generar la matriz de confusión detallada
+resultado_evaluacion &lt;- confusionMatrix(predicciones, datos_prueba$Species)
+
+# Imprimir el reporte completo de métricas
+print(resultado_evaluacion)</pre>
+
+    <h2>Métricas Clave a Evaluar</h2>
+    <ul>
+        <li><strong>Accuracy (Exactitud):</strong> Porcentaje total de plantas clasificadas de forma correcta (suele superar el 93% en este conjunto de datos).</li>
+        <li><strong>Sensibilidad (Sensitivity):</strong> Capacidad del algoritmo para detectar correctamente una especie específica sin pasarla por alto.</li>
+    </ul>
+</div>
+
+</body>
+</html>

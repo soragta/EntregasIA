@@ -1,0 +1,131 @@
+---
+title: "actividad NB FCI"
+author: "Roberto Moises Marin Perez"
+date: "2026-07-01"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Para cumplir con el requerimiento de seleccionar un conjunto de 20 a 50 estudiantes de la FCI al azar, se toman los 10 casos iniciales provistos y se extiende la muestra mediante una simulación probabilística hasta completar 40 estudiantes.
+
+Las características o features analizadas son: TiempoEstudio, Asistencia, Participacion y SituacionEcon. La variable objetivo (target) es el Rendimiento.
+
+# Configuración de los 10 estudiantes base descritos en el problema
+datos_iniciales <- data.frame(
+  TiempoEstudio = c("Alto", "Medio", "Bajo", "Alto", "Medio", "Alto", "Bajo", "Medio", "Alto", "Bajo"),
+  Asistencia    = c("Alta", "Media", "Baja", "Alta", "Media", "Alta", "Baja", "Alta", "Media", "Baja"),
+  Participacion = c("Alta", "Baja", "Baja", "Media", "Media", "Alta", "Baja", "Media", "Alta", "Media"),
+  SituacionEcon = c("Buena", "Mala", "Mala", "Buena", "Buena", "Buena", "Mala", "Buena", "Buena", "Mala"),
+  Rendimiento   = c("Excelente", "Regular", "Deficiente", "Bueno", "Bueno", "Excelente", "Deficiente", "Bueno", "Excelente", "Regular"),
+  stringsAsFactors = TRUE
+)
+
+# Definición de niveles de las variables categóricas
+niveles_tiempo <- c("Alto", "Medio", "Bajo")
+niveles_asistencia <- c("Alta", "Media", "Baja")
+niveles_participacion <- c("Alta", "Media", "Baja")
+niveles_econ <- c("Buena", "Mala")
+niveles_rendimiento <- c("Excelente", "Bueno", "Regular", "Deficiente")
+
+# Extensión aleatoria estructurada de 30 estudiantes adicionales
+set.seed(123) # Fijar semilla para reproducibilidad
+n_adicionales <- 30
+
+extra_tiempo <- sample(niveles_tiempo, n_adicionales, replace = TRUE, prob = c(0.4, 0.4, 0.2))
+extra_asistencia <- sample(niveles_asistencia, n_adicionales, replace = TRUE, prob = c(0.5, 0.3, 0.2))
+extra_participacion <- sample(niveles_participacion, n_adicionales, replace = TRUE, prob = c(0.3, 0.5, 0.2))
+extra_econ <- sample(niveles_econ, n_adicionales, replace = TRUE, prob = c(0.6, 0.4))
+
+# Lógica condicional simulada para determinar el rendimiento académico objetivo
+extra_rendimiento <- sapply(1:n_adicionales, function(i) {
+  puntos <- 0
+  if(extra_tiempo[i] == "Alto") puntos <- puntos + 40
+  if(extra_tiempo[i] == "Medio") puntos <- puntos + 25
+  if(extra_tiempo[i] == "Bajo") puntos <- puntos + 10
+  
+  if(extra_asistencia[i] == "Alta") puntos <- puntos + 30
+  if(extra_asistencia[i] == "Media") puntos <- puntos + 15
+  if(extra_asistencia[i] == "Baja") puntos <- puntos + 5
+  
+  if(extra_participacion[i] == "Alta") puntos <- puntos + 20
+  if(extra_participacion[i] == "Media") puntos <- puntos + 10
+  if(extra_participacion[i] == "Baja") puntos <- puntos + 0
+  
+  if(extra_econ[i] == "Buena") puntos <- puntos + 10
+  
+  puntos <- puntos + runif(1, -5, 5) # Incorporación de ruido aleatorio realista
+  
+  if(puntos >= 85) return("Excelente")
+  if(puntos >= 65) return("Bueno")
+  if(puntos >= 45) return("Regular")
+  return("Deficiente")
+})
+
+datos_adicionales <- data.frame(
+  TiempoEstudio = factor(extra_tiempo, levels = niveles_tiempo),
+  Asistencia    = factor(extra_asistencia, levels = niveles_asistencia),
+  Participacion = factor(extra_participacion, levels = niveles_participacion),
+  SituacionEcon = factor(extra_econ, levels = niveles_econ),
+  Rendimiento   = factor(extra_rendimiento, levels = niveles_rendimiento)
+)
+
+# Unión definitiva en un único conjunto de datos tabulado
+datos_fci <- rbind(datos_iniciales, datos_adicionales)
+
+# Formatear factores de forma explícita
+datos_fci$TiempoEstudio <- factor(datos_fci$TiempoEstudio, levels = niveles_tiempo)
+datos_fci$Asistencia    <- factor(datos_fci$Asistencia, levels = niveles_asistencia)
+datos_fci$Participacion <- factor(datos_fci$Participacion, levels = niveles_participacion)
+datos_fci$SituacionEcon <- factor(datos_fci$SituacionEcon, levels = niveles_econ)
+datos_fci$Rendimiento   <- factor(datos_fci$Rendimiento, levels = niveles_rendimiento)
+
+# Mostrar la tabla en el documento HTML compilado
+knitr::kable(datos_fci, caption = "Tabla Completa de Estudiantes Tabulados de la FCI")
+
+set.seed(777) # Semilla independiente para la partición de los datos
+total_filas <- nrow(datos_fci)
+tamano_entrenamiento <- round(0.8 * total_filas)
+
+indices_entrenamiento <- sample(1:total_filas, tamano_entrenamiento)
+
+datos_entrenamiento <- datos_fci[indices_entrenamiento, ]
+datos_prueba        <- datos_fci[-indices_entrenamiento, ]
+
+cat("Registros para Entrenamiento (80%):", nrow(datos_entrenamiento), "\n")
+cat("Registros para Prueba (20%):", nrow(datos_prueba), "\n")
+
+# Comprobar e instalar paquete obligatorio si no existe
+if(!require(e1071)) install.packages("e1071", repos = "[http://cran.us.r-project.org](http://cran.us.r-project.org)")
+library(e1071)
+
+# Ajuste del modelo clasificador
+modelo_nb <- naiveBayes(Rendimiento ~ TiempoEstudio + Asistencia + Participacion + SituacionEcon,data = datos_entrenamiento)
+
+# Visualizar el resumen estadístico del modelo obtenido
+print(modelo_nb)
+
+# Ejecución de predicciones sobre el set de prueba
+predicciones <- predict(modelo_nb, newdata = datos_prueba)
+
+# Visualizar la tabla de resultados cara a cara
+resultados_comparativa <- data.frame(Real = datos_prueba$Rendimiento, Predicho = predicciones)
+knitr::kable(resultados_comparativa, caption = "Comparativa: Valores Reales vs Predichos")
+
+# Construcción de la matriz cruzada
+matriz_confusion <- table(Predicho = predicciones, Real = datos_prueba$Rendimiento)
+
+# Mostrar la matriz resultante
+print("Matriz de Confusión:")
+print(matriz_confusion)
+
+# Cálculo manual de métricas base de Exactitud
+accuracy <- sum(diag(matriz_confusion)) / sum(matriz_confusion)
+cat("\nPrecisión Global (Accuracy) en el conjunto de prueba:", round(accuracy * 100, 2), "%\n")
