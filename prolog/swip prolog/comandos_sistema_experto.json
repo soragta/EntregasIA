@@ -1,0 +1,34 @@
+[
+    {
+        "comando": "swipl -s sistema_experto_isc.pl",
+        "descripcion": "Carga el archivo e inicializa de forma automática el servidor HTTP en el puerto 8080."
+    },
+    {
+        "comando": "curl http://localhost:8080/materias",
+        "descripcion": "Obtiene la lista completa de materias organizadas por semestre y área."
+    },
+    {
+        "comando": "curl http://localhost:8080/alumno_status?id=1",
+        "descripcion": "Consulta el estatus detallado de Juan Pérez (Alto rendimiento, materias sugeridas, historial)."
+    },
+    {
+        "comando": "curl http://localhost:8080/alumno_status?id=2",
+        "descripcion": "Consulta el estatus de María López (Carga restringida a 4 materias por promedio/reprobadas)."
+    },
+    {
+        "comando": "curl http://localhost:8080/alumno_status?id=3",
+        "descripcion": "Consulta el estatus de Carlos Gómez (Alerta de baja reglamentaria por reprobar 3 veces la misma materia)."
+    },
+    {
+        "comando": "curl http://localhost:8080/alto_rendimiento",
+        "descripcion": "Lista todos los alumnos con promedio general igual o mayor a 90."
+    },
+    {
+        "comando": "curl http://localhost:8080/aspirantes?materia=mat2",
+        "descripcion": "Muestra cuántos y qué alumnos son aspirantes aptos para abrir el curso de Matemáticas 2."
+    },
+    {
+        "comando": "?- halt.",
+        "descripcion": "Ejecutar dentro de la consola de Prolog para apagar el servidor y salir."
+    }
+]
