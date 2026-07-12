@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>XOR Perceptrón con Kernel 3D</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f5f5f5; }
+        #plot { width: 100%; height: 600px; background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>Visualización de la Compuerta XOR usando un Kernel en 3D</h1>
+    <div id="plot"></div>
+
+    <script>
+        // 1. Datos originales de la compuerta XOR (Espacio 2D)
+        const X_2d = [
+            [0, 0],
+            [0, 1],
+            [1, 0],
+            [1, 1]
+        ];
+        const Y = [0, 1, 1, 0]; // Salidas deseadas
+
+        // 2. Ingeniería de Características: Mapeo al espacio 3D (x1, x2, x1 * x2)
+        const X_3d = X_2d.map(punto => [punto[0], punto[1], punto[0] * punto[1]]);
+
+        // 3. Parámetros del Perceptrón (Pesos y Sesgo calculados)
+        const w1 = 1, w2 = 1, w3 = -2;
+        const b = -0.5;
+
+        // --- Separación de datos por clase para la gráfica ---
+        const clase0 = { x: [], y: [], z: [] };
+        const clase1 = { x: [], y: [], z: [] };
+
+        X_3d.forEach((punto, index) => {
+            if (Y[index] === 0) {
+                clase0.x.push(punto[0]);
+                clase0.y.push(punto[1]);
+                clase0.z.push(punto[2]);
+            } else {
+                clase1.x.push(punto[0]);
+                clase1.y.push(punto[1]);
+                clase1.z.push(punto[2]);
+            }
+        });
+
+        // 4. Generación de la malla para el Plano Separador
+        // Ecuación: w1*x + w2*y + w3*z + b = 0  -> Despejando Z: z = (-b - w1*x - w2*y) / w3
+        const planoX = [], planoY = [], planoZ = [];
+        const resolucion = 10;
+
+        for (let i = 0; i <= resolucion; i++) {
+            let xVal = -0.2 + (1.4 * i / resolucion);
+            planoX.push(xVal);
+            planoY.push(xVal); // Usamos el mismo rango para ambos ejes
+        }
+
+        for (let i = 0; i < planoX.length; i++) {
+            let filaZ = [];
+            for (let j = 0; j < planoY.length; j++) {
+                let zVal = (-b - (w1 * planoX[i]) - (w2 * planoY[j])) / w3;
+                filaZ.push(zVal);
+            }
+            planoZ.push(filaZ);
+        }
+
+        // --- Configuración de los objetos visuales en Plotly ---
+
+        // Puntos Azules (Clase 0)
+        const trace0 = {
+            x: clase0.x, y: clase0.y, z: clase0.z,
+            mode: 'markers',
+            marker: { color: '#1f77b4', size: 10, symbol: 'circle' },
+            name: 'Clase 0 (Falso)',
+            type: 'scatter3d'
+        };
+
+        // Puntos Rojos (Clase 1)
+        const trace1 = {
+            x: clase1.x, y: clase1.y, z: clase1.z,
+            mode: 'markers',
+            marker: { color: '#d62728', size: 10, symbol: 'circle' },
+            name: 'Clase 1 (Verdadero)',
+            type: 'scatter3d'
+        };
+
+        // Superficie del Plano Separador
+        const tracePlano = {
+            x: planoX, y: planoY, z: planoZ,
+            type: 'surface',
+            opacity: 0.6,
+            colorscale: 'Greys',
+            showscale: false,
+            name: 'Plano del Perceptrón'
+        };
+
+        // Configuración del escenario
+        const layout = {
+            scene: {
+                xaxis: { title: 'X1 (Entrada 1)', range: [-0.2, 1.2] },
+                yaxis: { title: 'X2 (Entrada 2)', range: [-0.2, 1.2] },
+                zaxis: { title: 'X3 (X1 * X2)', range: [-0.2, 1.2] }
+            },
+            margin: { l: 0, r: 0, b: 0, t: 50 }
+        };
+
+        // Renderizar la gráfica interactiva
+        Plotly.newPlot('plot', [trace0, trace1, tracePlano], layout);
+    </script>
+</body>
+</html>
